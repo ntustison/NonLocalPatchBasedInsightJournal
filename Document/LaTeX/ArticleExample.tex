@@ -1,0 +1,399 @@
+%
+% Complete documentation on the extended LaTeX markup used for Insight
+% documentation is available in ``Documenting Insight'', which is part
+% of the standard documentation for Insight.  It may be found online
+% at:
+%
+%     http://www.itk.org/
+
+\documentclass{InsightArticle}
+
+\usepackage[dvips]{graphicx}
+\usepackage[cmtip,all]{xy}
+\newcommand{\longsquiggly}{\xymatrix{{}\ar@{~>}[r]&{}}}
+\usepackage{mathtools}
+\usepackage{subcaption}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  hyperref should be the last package to be loaded.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[
+bookmarks,
+bookmarksopen,
+backref,
+colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
+]{hyperref}
+
+
+%  This is a template for Papers to the Insight Journal.
+%  It is comparable to a technical report format.
+
+% The title should be descriptive enough for people to be able to find
+% the relevant document.
+\title{Two Luis Miguel fans walk into a bar in Nagoya $\xRightarrow[]{yada\,\,\,yada\,\,\,yada}$
+an ITK-implementation of a popular patch-based denoising filter}
+
+%
+% NOTE: This is the last number of the "handle" URL that
+% The Insight Journal assigns to your paper as part of the
+% submission process. Please replace the number "1338" with
+% the actual handle number that you get assigned.
+%
+\newcommand{\IJhandlerIDnumber}{3564}
+
+% Increment the release number whenever significant changes are made.
+% The author and/or editor can define 'significant' however they like.
+\release{0.00}
+
+% At minimum, give your name and an email address.  You can include a
+% snail-mail address if you like.
+\author{Nick Tustison$^{1}$ and Jose Vicente Manj\'on$^{2}$}
+\authoraddress{$^{1}$University of Virginia, Charlottesville, VA\\
+               $^{2}$ITACA institute, Universidad Polit\'ecnica de Valencia, Valencia, Spain
+               }
+
+\begin{document}
+
+%
+% Add hyperlink to the web location and license of the paper.
+% The argument of this command is the handler identifier given
+% by the Insight Journal to this paper.
+%
+\IJhandlefooter{\IJhandlerIDnumber}
+
+
+%\ifpdf
+%\else
+%   %
+%   % Commands for including Graphics when using latex
+%   %
+%   \DeclareGraphicsExtensions{.eps,.jpg,.gif,.tiff,.bmp,.png}
+%   \DeclareGraphicsRule{.jpg}{eps}{.jpg.bb}{`convert #1 eps:-}
+%   \DeclareGraphicsRule{.gif}{eps}{.gif.bb}{`convert #1 eps:-}
+%   \DeclareGraphicsRule{.tiff}{eps}{.tiff.bb}{`convert #1 eps:-}
+%   \DeclareGraphicsRule{.bmp}{eps}{.bmp.bb}{`convert #1 eps:-}
+%   \DeclareGraphicsRule{.png}{eps}{.png.bb}{`convert #1 eps:-}
+%\fi
+
+
+\maketitle
+
+
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+
+% The abstract should be a paragraph or two long, and describe the
+% scope of the document.
+\begin{abstract}
+\noindent
+This document describes an ITK implementation of the adaptive patch-based
+image denoising algorithm described in \cite{Manjon:2010aa}.  This offering consists
+of the templated class itkPatchBasedDenoisingImageFilter interfaced through
+the DenoiseImage program which includes its own interface program.  We include
+a couple of examples.
+\end{abstract}
+
+\IJhandlenote{\IJhandlerIDnumber}
+
+% \tableofcontents
+
+\section{Introduction}
+
+Image filtering techniques are usually applied to increase the quality of MR images.
+Most of these techniques assume an equal noise distribution across the image. When this
+assumption is not met, the resulting filtering becomes suboptimal. This is the case of MR
+images with spatially varying noise levels, such as those obtained by parallel imaging
+(sensitivity-encoded), intensity inhomogeneity-corrected images or surface coil based
+acquisitions. In this work, we have adapted a recently proposed filter so-called
+Non-Local Means (NL-means) to deal with MR images with spatially varying noise levels
+(for both Gaussian and Rician distributed noise). With this new method, information
+regarding the local image noise level is used to adjust the amount of denoising strength
+of the filter. Such information is automatically obtained from the images by using the
+local noise estimation method described in \cite{Manjon:2010aa}.
+
+This method has been validated and compared with the standard NL-means filter on simulated
+and real MR imaging data. This noise-adaptive NL-means method was demonstrated to outperform
+the standard NL-means based filter when spatially varying noise is present in the images.
+Although source code is available from Prof. Manj\'on Herrera's website
+(http://personales.upv.es/jmanjon/denoising/arnlm.html).  This particular algorithm is
+currently not available in the Insight Toolkit which provides good performance with minimal
+parameter tuning. In this Insight Journal submission, we provide a brief overview of the ITK
+implementation and provide a couple examples.
+
+\section{ITK Implementation}
+
+The following files define the adaptive NL-means algorithm and is written in ITK
+coding style:
+\begin{itemize}
+  \item itkAdaptiveNonLocalMeansDenoisingImageFilter.h
+  \item itkAdaptiveNonLocalMeansDenoisingImageFilter.hxx
+\end{itemize}
+The following helper class
+\begin{itemize}
+  \item itkVarianceImageFilter.h
+  \item itkVarianceImageFilter.hxx
+\end{itemize}
+is the variance analog to the \doxygen{MeanImageFilter} which ``Computes an image where a
+given pixel is the [variance] value of the the pixels in a neighborhood about the corresponding
+input pixel.''  Both the adaptive and variance filters are multi-threaded.
+
+Additionally, we wrote an easy-to-use interface program, DenoiseImage.cxx, with an ANTs-based command
+line interface facilitated by the following helper classes:
+\begin{itemize}
+  \item antsCommandLineOption.h
+  \item antsCommandLineOption.cxx
+  \item antsCommandLineParser.h
+  \item antsCommandLineParser.cxx
+\end{itemize}
+These latter files are not essential for other applications or for inclusion into ITK.
+They are included simply to facilitate the generation of a stand-alone application that
+people can use.  One can invoke the help menu via \verb#$ DenoiseImage --help 1# at the
+command line:
+\small
+\begin{verbatim}
+$ DenoiseImage --help 1
+
+COMMAND:
+     DenoiseImage
+          Denoise an image using a spatially adaptive filter originally described in J. V.
+          Manjon, P. Coupe, Luis Marti-Bonmati, D. L. Collins, and M. Robles. Adaptive
+          Non-Local Means Denoising of MR Images With Spatially Varying Noise Levels,
+          Journal of Magnetic Resonance Imaging, 31:192-203, June 2010.
+
+OPTIONS:
+     -d, --image-dimensionality 2/3/4
+          This option forces the image to be treated as a specified-dimensional image. If
+          not specified, the program tries to infer the dimensionality from the input
+          image.
+
+     -i, --input-image inputImageFilename
+          A scalar image is expected as input for noise correction.
+
+     -n, --noise-model Rician/(Gaussian)
+          Employ a Rician or Gaussian noise model.
+
+     -x, --mask-image maskImageFilename
+          If a mask image is specified, denoising is only performed in the mask region.
+
+     -s, --shrink-factor (1)/2/3/...
+          Running noise correction on large images can be time consuming. To lessen
+          computation time, the input image can be resampled. The shrink factor, specified
+          as a single integer, describes this resampling. Shrink factor = 1 is the
+          default.
+
+     -p, --patch-radius 1
+                        1x1x1
+          Patch radius. Default = 1x1x1
+
+     -r, --search-radius 3
+                         3x3x3
+          Search radius. Default = 3x3x3.
+
+     -o, --output correctedImage
+                  [correctedImage,<noiseImage>]
+          The output consists of the noise corrected version of the input image.
+          Optionally, one can also output the estimated noise image.
+
+     -v, --verbose (0)/1
+          Verbose output.
+
+     -h
+          Print the help menu (short version).
+
+     --help
+          Print the help menu.
+\end{verbatim}
+\normalsize
+which should provide minimal detail regarding each parameter.  The default parameters
+should provide adequate performance for a variety of cases thus requiring only the simple
+call (for a 3-D image)
+
+\small
+\begin{verbatim}
+$ DenoiseImage -d 3 -i ${inputImage} -o ${outputImage}
+\end{verbatim}
+\normalsize
+
+As mentioned, this filter is multi-threaded so one might want to set the environment
+variable to enable more than one thread, e.g.,
+\small
+\begin{verbatim}
+$ export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4
+\end{verbatim}
+\normalsize
+
+To see the progress of the filter, one also needs to set the verbose flag, i.e.,
+\verb#-v 1#.
+
+\section{Examples}
+
+We included a 2-D brain slice and a 3-D hyperpolarized gas volume each with a corresponding
+mask.  Below we include the call and resulting output for these two sets of data.
+
+\subsection{T1-weighted MRI brain slice}
+
+\small
+\begin{verbatim}
+$ DenoiseImage -d 2 -i t81slice.nii.gz -x t81mask.nii.gz -o t81denoised.nii.gz -v 1
+
+Running for 2-dimensional images.
+
+*********10*********20*********30*********40*********50*********60*********70*********80*********90*********
+
+   AdaptiveNonLocalMeansDenoisingImageFilter (0x7f9733997080)
+     RTTI typeinfo:   itk::AdaptiveNonLocalMeansDenoisingImageFilter<itk::Image<float, 2u>, itk::Image<float, 2u>, itk::Image<unsigned char, 2u> >
+     Reference Count: 1
+     Modified Time: 517
+     Debug: Off
+     Object Name:
+     Observers:
+       ProgressEvent(Command)
+     Inputs:
+       Primary: (0x7f9733996c10) *
+       _1: (0x7f97339988f0)
+     Indexed Inputs:
+       0: Primary (0x7f9733996c10)
+       1: _1 (0x7f97339988f0)
+     Required Input Names: Primary
+     NumberOfRequiredInputs: 1
+     Outputs:
+       Primary: (0x7f9733996a50)
+     Indexed Outputs:
+       0: Primary (0x7f9733996a50)
+     NumberOfRequiredOutputs: 1
+     Number Of Threads: 1
+     ReleaseDataFlag: Off
+     ReleaseDataBeforeUpdateFlag: Off
+     AbortGenerateData: Off
+     Progress: 1
+     Multithreader:
+       RTTI typeinfo:   itk::MultiThreader
+       Reference Count: 1
+       Modified Time: 299
+       Debug: Off
+       Object Name:
+       Observers:
+         none
+       Thread Count: 1
+       Global Maximum Number Of Threads: 128
+       Global Default Number Of Threads: 1
+     CoordinateTolerance: 1e-06
+     DirectionTolerance: 1e-06
+     Using Gaussian noise model.
+     Epsilon = 1e-05
+     Mean threshold = 0.95
+     Variance threshold = 0.5
+     Smoothing variance = 2
+     Neighborhood radius for local mean and variance = [1, 1]
+     Neighborhood search radius  = [3, 3]
+     Neighborhood block radius = [1, 1]
+Elapsed time: 0.0831451
+\end{verbatim}
+\normalsize
+
+\begin{figure}[!ht]
+\begin{subfigure}{0.5\textwidth}
+  \centering
+  \includegraphics[width=0.8\linewidth]{Figures/t81slice.eps}
+  \caption{Original}
+\end{subfigure}
+\begin{subfigure}{0.5\textwidth}
+  \centering
+  \includegraphics[width=0.8\linewidth]{Figures/t81denoised.eps}
+  \caption{Denoised}
+\end{subfigure}
+\caption{Effects of the NL-means filter on a 2-D T1-weighted MRI brain slice.}
+\end{figure}
+
+
+\subsection{Hyperpolarized He3 Lung MRI volume}
+
+\small
+\begin{verbatim}
+$ DenoiseImage -d 3 -i he3volume.nii.gz -x he3mask.nii.gz -o he3denoised.nii.gz -v 1
+
+Running for 3-dimensional images.
+
+*********10*********20*********30*********40*********50*********60*********70*********80*********90*********
+
+   AdaptiveNonLocalMeansDenoisingImageFilter (0x7ff279e0a440)
+     RTTI typeinfo:   itk::AdaptiveNonLocalMeansDenoisingImageFilter<itk::Image<float, 3u>, itk::Image<float, 3u>, itk::Image<unsigned char, 3u> >
+     Reference Count: 1
+     Modified Time: 506
+     Debug: Off
+     Object Name:
+     Observers:
+       ProgressEvent(Command)
+     Inputs:
+       Primary: (0x7ff27a97ea20) *
+       _1: (0x7ff27a97f040)
+     Indexed Inputs:
+       0: Primary (0x7ff27a97ea20)
+       1: _1 (0x7ff27a97f040)
+     Required Input Names: Primary
+     NumberOfRequiredInputs: 1
+     Outputs:
+       Primary: (0x7ff279e0a710)
+     Indexed Outputs:
+       0: Primary (0x7ff279e0a710)
+     NumberOfRequiredOutputs: 1
+     Number Of Threads: 4
+     ReleaseDataFlag: Off
+     ReleaseDataBeforeUpdateFlag: Off
+     AbortGenerateData: Off
+     Progress: 1
+     Multithreader:
+       RTTI typeinfo:   itk::MultiThreader
+       Reference Count: 1
+       Modified Time: 294
+       Debug: Off
+       Object Name:
+       Observers:
+         none
+       Thread Count: 4
+       Global Maximum Number Of Threads: 128
+       Global Default Number Of Threads: 4
+     CoordinateTolerance: 1e-06
+     DirectionTolerance: 1e-06
+     Using Gaussian noise model.
+     Epsilon = 1e-05
+     Mean threshold = 0.95
+     Variance threshold = 0.5
+     Smoothing variance = 2
+     Neighborhood radius for local mean and variance = [1, 1, 1]
+     Neighborhood search radius  = [3, 3, 3]
+     Neighborhood block radius = [1, 1, 1]
+Elapsed time: 1.7134
+\end{verbatim}
+\normalsize
+
+\begin{figure}[!ht]
+\begin{subfigure}{0.5\textwidth}
+  \centering
+  \includegraphics[width=0.8\linewidth]{Figures/he3volume.eps}
+  \caption{Original}
+\end{subfigure}
+\begin{subfigure}{0.5\textwidth}
+  \centering
+  \includegraphics[width=0.8\linewidth]{Figures/he3denoised.eps}
+  \caption{Denoised}
+\end{subfigure}
+\caption{Effects of the NL-means filter on a 3-D hyperpolarized gas MRI lung volume.}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Insert the bibliography using BibTeX
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{plain}
+\bibliography{InsightJournal}
+
+
+\end{document}
