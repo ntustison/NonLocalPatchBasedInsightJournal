@@ -48,7 +48,7 @@ public:
       {
       if( filter->GetCurrentIteration() > 0 )
         {
-        std::cout << std::endl;
+        std::cout << "(epsilon value = " << filter->GetCurrentEpsilon() << ")." << std::endl;
         }
       std::cout << "Level " << filter->GetCurrentIteration() << ": " << std::flush;
       this->m_CurrentProgress = 0;
@@ -82,7 +82,7 @@ public:
       {
       if( filter->GetCurrentIteration() > 0 )
         {
-        std::cout << std::endl;
+        std::cout << "(epsilon value = " << filter->GetCurrentEpsilon() << ")." << std::endl;
         }
       std::cout << "Level " << filter->GetCurrentIteration() << ": " << std::flush;
       this->m_CurrentProgress = 0;
