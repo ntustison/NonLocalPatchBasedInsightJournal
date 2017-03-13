@@ -2,7 +2,7 @@
 %% http://bibdesk.sourceforge.net/
 
 
-%% Created for Nick Tustison at 2016-08-26 09:48:29 -0700 
+%% Created for Nick Tustison at 2017-03-09 15:08:49 -0800 
 
 
 %% Saved with string encoding Unicode (UTF-8) 
@@ -59,6 +59,80 @@
 
 @string{vr = {Vision Research}}
 
+
+@article{Wang:2013ab,
+	Abstract = {Multi-atlas segmentation is an effective approach for automatically labeling objects of interest in biomedical images. In this approach, multiple expert-segmented example images, called atlases, are registered to a target image, and deformed atlas segmentations are combined using label fusion. Among the proposed label fusion strategies, weighted voting with spatially varying weight distributions derived from atlas-target intensity similarity have been particularly successful. However, one limitation of these strategies is that the weights are computed independently for each atlas, without taking into account the fact that different atlases may produce similar label errors. To address this limitation, we propose a new solution for the label fusion problem in which weighted voting is formulated in terms of minimizing the total expectation of labeling error and in which pairwise dependency between atlases is explicitly modeled as the joint probability of two atlases making a segmentation error at a voxel. This probability is approximated using intensity similarity between a pair of atlases and the target image in the neighborhood of each voxel. We validate our method in two medical image segmentation problems: hippocampus segmentation and hippocampus subfield segmentation in magnetic resonance (MR) images. For both problems, we show consistent and significant improvement over label fusion strategies that assign atlas weights independently.},
+	Author = {Wang, Hongzhi and Suh, Jung W and Das, Sandhitsu R and Pluta, John B and Craige, Caryne and Yushkevich, Paul A},
+	Date-Added = {2017-03-09 23:07:41 +0000},
+	Date-Modified = {2017-03-09 23:07:41 +0000},
+	Doi = {10.1109/TPAMI.2012.143},
+	Journal = {IEEE Trans Pattern Anal Mach Intell},
+	Journal-Full = {IEEE transactions on pattern analysis and machine intelligence},
+	Mesh = {Algorithms; Databases, Factual; Hippocampus; Humans; Image Processing, Computer-Assisted; Magnetic Resonance Imaging},
+	Month = {Mar},
+	Number = {3},
+	Pages = {611-23},
+	Pmc = {PMC3864549},
+	Pmid = {22732662},
+	Pst = {ppublish},
+	Title = {Multi-Atlas Segmentation with Joint Label Fusion},
+	Volume = {35},
+	Year = {2013},
+	Bdsk-Url-1 = {http://dx.doi.org/10.1109/TPAMI.2012.143}}
+
+@article{Wang:2013aa,
+	Abstract = {Label fusion based multi-atlas segmentation has proven to be one of the most competitive techniques for medical image segmentation. This technique transfers segmentations from expert-labeled images, called atlases, to a novel image using deformable image registration. Errors produced by label transfer are further reduced by label fusion that combines the results produced by all atlases into a consensus solution. Among the proposed label fusion strategies, weighted voting with spatially varying weight distributions derived from atlas-target intensity similarity is a simple and highly effective label fusion technique. However, one limitation of most weighted voting methods is that the weights are computed independently for each atlas, without taking into account the fact that different atlases may produce similar label errors. To address this problem, we recently developed the joint label fusion technique and the corrective learning technique, which won the first place of the 2012 MICCAI Multi-Atlas Labeling Challenge and was one of the top performers in 2013 MICCAI Segmentation: Algorithms, Theory and Applications (SATA) challenge. To make our techniques more accessible to the scientific research community, we describe an Insight-Toolkit based open source implementation of our label fusion methods. Our implementation extends our methods to work with multi-modality imaging data and is more suitable for segmentation problems with multiple labels. We demonstrate the usage of our tools through applying them to the 2012 MICCAI Multi-Atlas Labeling Challenge brain image dataset and the 2013 SATA challenge canine leg image dataset. We report the best results on these two datasets so far.},
+	Author = {Wang, Hongzhi and Yushkevich, Paul A},
+	Date-Added = {2017-03-09 23:07:17 +0000},
+	Date-Modified = {2017-03-09 23:07:17 +0000},
+	Doi = {10.3389/fninf.2013.00027},
+	Journal = {Front Neuroinform},
+	Journal-Full = {Frontiers in neuroinformatics},
+	Keywords = {Insight-Toolkit; corrective learning; joint label fusion; multi-atlas label fusion; open source implementation},
+	Pages = {27},
+	Pmc = {PMC3837555},
+	Pmid = {24319427},
+	Pst = {epublish},
+	Title = {Multi-atlas segmentation with joint label fusion and corrective learning-an open source implementation},
+	Volume = {7},
+	Year = {2013},
+	Bdsk-Url-1 = {http://dx.doi.org/10.3389/fninf.2013.00027}}
+
+@article{Manjon:2010ac,
+	Abstract = {In Magnetic Resonance Imaging, image resolution is limited by several factors such as hardware or time constraints. In many cases, the acquired images have to be upsampled to match a specific resolution. In such cases, image interpolation techniques have been traditionally applied. However, traditional interpolation techniques are not able to recover high frequency information of the underlying high resolution data. In this paper, a new upsampling method is proposed to recover some of this high frequency information by using a data-adaptive patch-based reconstruction in combination with a subsampling coherence constraint. The proposed method has been evaluated on synthetic and real clinical cases and compared with traditional interpolation methods. The proposed method is shown to outperform classical interpolation methods compared in terms of quantitative measures and visual observation.},
+	Author = {Manj{\'o}n, Jos{\'e} V and Coup{\'e}, Pierrick and Buades, Antonio and Fonov, Vladimir and Louis Collins, D and Robles, Montserrat},
+	Date-Added = {2017-03-09 23:05:49 +0000},
+	Date-Modified = {2017-03-09 23:05:49 +0000},
+	Doi = {10.1016/j.media.2010.05.010},
+	Journal = {Med Image Anal},
+	Journal-Full = {Medical image analysis},
+	Mesh = {Algorithms; Artifacts; Brain; Data Interpretation, Statistical; Humans; Image Enhancement; Image Interpretation, Computer-Assisted; Magnetic Resonance Imaging; Reproducibility of Results; Sample Size; Sensitivity and Specificity; Signal Processing, Computer-Assisted},
+	Month = {Dec},
+	Number = {6},
+	Pages = {784-92},
+	Pmid = {20566298},
+	Pst = {ppublish},
+	Title = {Non-local MRI upsampling},
+	Volume = {14},
+	Year = {2010},
+	Bdsk-Url-1 = {http://dx.doi.org/10.1016/j.media.2010.05.010}}
+
+@article{Manjon:2010ab,
+	Abstract = {In Magnetic Resonance Imaging typical clinical settings, both low- and high-resolution images of different types are routinarily acquired. In some cases, the acquired low-resolution images have to be upsampled to match with other high-resolution images for posterior analysis or postprocessing such as registration or multimodal segmentation. However, classical interpolation techniques are not able to recover the high-frequency information lost during the acquisition process. In the present paper, a new superresolution method is proposed to reconstruct high-resolution images from the low-resolution ones using information from coplanar high resolution images acquired of the same subject. Furthermore, the reconstruction process is constrained to be physically plausible with the MR acquisition model that allows a meaningful interpretation of the results. Experiments on synthetic and real data are supplied to show the effectiveness of the proposed approach. A comparison with classical state-of-the-art interpolation techniques is presented to demonstrate the improved performance of the proposed methodology.},
+	Author = {Manj{\'o}n, Jos{\'e} V and Coup{\'e}, Pierrick and Buades, Antonio and Collins, D Louis and Robles, Montserrat},
+	Date-Added = {2017-03-09 23:04:57 +0000},
+	Date-Modified = {2017-03-09 23:04:57 +0000},
+	Doi = {10.1155/2010/425891},
+	Journal = {Int J Biomed Imaging},
+	Journal-Full = {International journal of biomedical imaging},
+	Pages = {425891},
+	Pmc = {PMC3004412},
+	Pmid = {21197094},
+	Pst = {ppublish},
+	Title = {MRI superresolution using self-similarity and image priors},
+	Volume = {2010},
+	Year = {2010},
+	Bdsk-Url-1 = {http://dx.doi.org/10.1155/2010/425891}}
 
 @article{Manjon:2010aa,
 	Abstract = {PURPOSE: To adapt the so-called nonlocal means filter to deal with magnetic resonance (MR) images with spatially varying noise levels (for both Gaussian and Rician distributed noise).

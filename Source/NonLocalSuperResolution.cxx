@@ -157,8 +157,10 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     }
 
   typename ImageType::Pointer referenceImage = ITK_NULLPTR;
-
   typename OptionType::Pointer referenceImageOption = parser->GetOption( "reference-image" );
+  typename ImageType::Pointer interpolatedImage = ITK_NULLPTR;
+  typename OptionType::Pointer interpolatedImageOption = parser->GetOption( "interpolated-image" );
+
   if( referenceImageOption && referenceImageOption->GetNumberOfFunctions() )
     {
     std::string inputFile = referenceImageOption->GetFunction( 0 )->GetName();
@@ -171,11 +173,23 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     referenceImage->Update();
     referenceImage->DisconnectPipeline();
     }
+  else if( interpolatedImageOption && interpolatedImageOption->GetNumberOfFunctions() )
+      {
+      std::string inputFile = interpolatedImageOption->GetFunction( 0 )->GetName();
+
+      typedef itk::ImageFileReader<ImageType> ReaderType;
+      typename ReaderType::Pointer reader = ReaderType::New();
+      reader->SetFileName( inputFile.c_str() );
+
+      interpolatedImage = reader->GetOutput();
+      interpolatedImage->Update();
+      interpolatedImage->DisconnectPipeline();
+      }
   else
     {
     if( verbose )
       {
-      std::cerr << "Reference image not specified." << std::endl;
+      std::cerr << "Reference image or interpolated image not specified." << std::endl;
       }
     return EXIT_FAILURE;
     }
@@ -184,7 +198,16 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
   typename SuperresoluterType::Pointer superresoluter = SuperresoluterType::New();
 
   superresoluter->SetLowResolutionInputImage( inputImage );
-  superresoluter->SetHighResolutionReferenceImage( referenceImage );
+  if( referenceImage )
+    {
+    superresoluter->SetHighResolutionReferenceImage( referenceImage );
+    superresoluter->SetPerformInitialMeanCorrection( false );
+    }
+  else if( interpolatedImage )
+    {
+    superresoluter->SetHighResolutionReferenceImage( interpolatedImage );
+    superresoluter->SetPerformInitialMeanCorrection( true );
+    }
 
   typename SuperresoluterType::NeighborhoodRadiusType neighborhoodPatchRadius;
   typename SuperresoluterType::NeighborhoodRadiusType neighborhoodSearchRadius;
@@ -510,12 +533,28 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
   {
   std::string description =
-    std::string( "The high resolution reference image.  Assumed to be in the same " ) +
-    std::string( "space as the low-resolution image (i.e., registered)." );
+    std::string( "An interpolated version of the low-resolution image (such as B-spline). " ) +
+    std::string( "One should specify either this option as a secondary input or a high-resolution " ) +
+    std::string( "multi-modal counterpart (cf the -k option)." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "interpolated-image" );
+  option->SetShortName( 'j' );
+  option->SetUsageOption( 0, "inputImageFilename" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( "A high resolution reference multi-modal image.  Assumed to be in the same " ) +
+    std::string( "space as the low-resolution input image (i.e., registered)." ) +
+    std::string( "One should specify either this option as a secondary input or an interpolated " ) +
+    std::string( "version (cf the -j option)." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "reference-image" );
-  option->SetShortName( 'j' );
+  option->SetShortName( 'k' );
   option->SetUsageOption( 0, "inputImageFilename" );
   option->SetDescription( description );
   parser->AddOption( option );
@@ -724,7 +763,16 @@ int main( int argc, char **argv )
 
     itk::ants::CommandLineParser::OptionType::Pointer imageOption =
       parser->GetOption( "input-image" );
-    if( imageOption && imageOption->GetNumberOfFunctions() > 0 )
+    itk::ants::CommandLineParser::OptionType::Pointer interpolatedImageOption =
+      parser->GetOption( "interpolated-image" );
+    itk::ants::CommandLineParser::OptionType::Pointer referenceImageOption =
+      parser->GetOption( "reference-image" );
+    if( imageOption && imageOption->GetNumberOfFunctions() > 0 &&
+        (
+          ( interpolatedImageOption && interpolatedImageOption->GetNumberOfFunctions() > 0 ) ||
+          ( referenceImageOption && referenceImageOption->GetNumberOfFunctions() > 0 )
+        )
+      )
       {
       if( imageOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
         {
@@ -737,8 +785,9 @@ int main( int argc, char **argv )
       }
     else
       {
-      std::cerr << "No input images were specified.  Specify an input image"
-               << " with the -i option" << std::endl;
+      std::cerr << "Not enough input images were specified.  Specify an input image"
+               << " with the -i option and a corresponding high-resoution image.  Either"
+               << " an interpolated version (-j) or multi-modal counterpart (-k)." << std::endl;
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
