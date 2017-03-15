@@ -1,5 +1,11 @@
 \BOOKMARK [1][]{section.1}{Introduction}{}% 1
 \BOOKMARK [1][]{section.2}{ITK\040Implementation}{}% 2
-\BOOKMARK [1][]{section.3}{Examples}{}% 3
-\BOOKMARK [2][]{subsection.3.1}{T1-weighted\040MRI\040brain\040slice}{section.3}% 4
-\BOOKMARK [2][]{subsection.3.2}{Hyperpolarized\040He3\040Lung\040MRI\040volume}{section.3}% 5
+\BOOKMARK [2][]{subsection.2.1}{Parent\040and\040child\040classes}{section.2}% 3
+\BOOKMARK [2][]{subsection.2.2}{Programs}{section.2}% 4
+\BOOKMARK [2][]{subsection.2.3}{Denoise\040image}{section.2}% 5
+\BOOKMARK [2][]{subsection.2.4}{Super-resolution}{section.2}% 6
+\BOOKMARK [2][]{subsection.2.5}{Joint\040fusion}{section.2}% 7
+\BOOKMARK [1][]{section.3}{Usage\040examples}{}% 8
+\BOOKMARK [2][]{subsection.3.1}{Denoise\040image}{section.3}% 9
+\BOOKMARK [2][]{subsection.3.2}{Super-resolution}{section.3}% 10
+\BOOKMARK [2][]{subsection.3.3}{Joint\040fusion}{section.3}% 11

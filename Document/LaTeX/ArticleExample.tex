@@ -49,14 +49,20 @@ and non-local super-resolution}
 
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
-\author{Nick Tustison$^{1}$ Brian Avants$^{2}$, Hongzhi Wang$^{3}$, Long Xie$^{4}$, Paul Yushkevich$^{4}$, and Jose Vicente Manj\'on$^{5}$}
-\authoraddress{$^{1}$University of Virginia, Charlottesville, VA\\
-               $^{2}$Biogen, Cambridge, MA\\
-               $^{3}$IBM, San Jose, CA\\
-               $^{4}$University of Pennsylviania, Philadelphia, PA\\
-               $^{5}$ITACA institute, Universidad Polit\'ecnica de Valencia, Valencia, Spain
+\author{Nick Tustison$^{1}$
+        Brian Avants$^{2}$,
+        Hongzhi Wang$^{3}$,
+        Long Xie$^{5}$,
+        Pierrick Coup\'e$^{4}$,
+        Paul Yushkevich$^{5}$, and
+        Jose Vicente Manj\'on$^{5}$}
+\authoraddress{$^{1}$University of Virginia, Charlottesville, VA, USA\\
+               $^{2}$Biogen, Cambridge, MA, USA\\
+               $^{3}$IBM Research, San Jose, CA, USA\\
+               $^{4}$ Laboratoire Bordelais de Recherche en Informatique, Talence, France\\
+               $^{5}$University of Pennsylviania, Philadelphia, USA\\
+               $^{6}$ITACA institute, Universidad Polit\'ecnica de Valencia, Valencia, Spain
                }
-
 \begin{document}
 
 %
@@ -114,17 +120,34 @@ provided to qualitatively demonstrate performance.
 
 \section{Introduction}
 
-Since the non-local (NL) means algorithm introduced in several early papers \cite{Buades},
+Since the non-local (NL) means algorithm introduced in several early papers,
 the resulting family of research techniques has grown to significant prominence within the
 medical imaging community.  In addition to continued research output, patch-based techniques
 have been the subject of workshops (Patch-MI 2015 and PMI'16, both MICCAI-sponsored
 workshops).   Given the interest and potential applications, this submission is a potential
-``conversation starter'' for the development of an ITK software framework
+``conversation starter'' for the development of an ITK software framework for accommodating
+such techniques.
 
 \section{ITK Implementation}
 
-The following files define the adaptive NL-means algorithm and is written in ITK
-coding style:
+\subsection{Parent and child classes}
+
+Based on the implementations of different algorithms from the various authors,
+the common routines were grouped to the following parent class:
+
+\begin{itemize}
+  \item itkNonLocalPatchBasedImageFilter.h
+  \item itkNonLocalPatchBasedImageFilter.hxx
+\end{itemize}
+
+The common routines contained within this class include defining both the
+patch and search neighborhoods.  We also define two patch similarity
+metrics---sum of squared differences (SSD) and Pearson's correlation.
+We also provide methods for ``vectorizing'' image patches and multiple image
+patches (for multi-modal applications) for facilitating similarity metric
+calculation.
+
+We provide the following classes for the adaptive denoising algorithm:
 \begin{itemize}
   \item itkAdaptiveNonLocalMeansDenoisingImageFilter.h
   \item itkAdaptiveNonLocalMeansDenoisingImageFilter.hxx
@@ -134,12 +157,40 @@ The following helper class
   \item itkVarianceImageFilter.h
   \item itkVarianceImageFilter.hxx
 \end{itemize}
-is the variance analog to the \doxygen{MeanImageFilter} which ``Computes an image where a
+These have been refactored since our previous contribution such that the
+adaptive denoising class is derived from the parent class.  Again, the
+second class is the variance analog to the \doxygen{MeanImageFilter}
+which ``Computes an image where a
 given pixel is the [variance] value of the the pixels in a neighborhood about the corresponding
-input pixel.''  Both the adaptive and variance filters are multi-threaded.
+input pixel.''
 
-Additionally, we wrote an easy-to-use interface program, DenoiseImage.cxx, with an ANTs-based command
-line interface facilitated by the following helper classes:
+For the super-resolution algorithm, we provide the following class:
+\begin{itemize}
+  \item itkNonLocalSuperresolutionImageFilter.h
+  \item itkNonLocalSuperresolutionImageFilter.hxx
+\end{itemize}
+which subsumes functionalities described in both \cite{Manjon:2010ab,Manjon:2010ac}.
+
+Finally, for the joint fusion algorithm \cite{Wang:2013ab,Wang:2013aa} we provide
+the following class:
+\begin{itemize}
+  \item itkWeightedVotingFusionImageFilter.h
+  \item itkWeightedVotingFusionImageFilter.hxx
+\end{itemize}
+
+Note that all classes are multi-threaded.
+
+\subsection{Programs}
+
+We provide the following routines which use the above-listed classes:
+\begin{itemize}
+  \item DenoiseImage.cxx
+  \item NonLocalSuperResolution.cxx
+  \item jointFusion.cxx
+\end{itemize}
+
+All these routines use an ANTs-based command line interface facilitated by the
+following helper classes:
 \begin{itemize}
   \item antsCommandLineOption.h
   \item antsCommandLineOption.cxx
@@ -148,8 +199,14 @@ line interface facilitated by the following helper classes:
 \end{itemize}
 These latter files are not essential for other applications or for inclusion into ITK.
 They are included simply to facilitate the generation of a stand-alone application that
-people can use.  One can invoke the help menu via \verb#$ DenoiseImage --help 1# at the
-command line:
+people can use.
+
+One can invoke the help menu for all these routines via the \verb#--help# option invoked at the
+command line.  To see the progress of the filter, one also needs to set the verbose flag, i.e.,
+\verb#-v 1#.  Below we give the help menu for each program.
+
+\subsection{Denoise image}
+
 \small
 \begin{verbatim}
 $ DenoiseImage --help 1
@@ -205,183 +262,207 @@ OPTIONS:
           Print the help menu.
 \end{verbatim}
 \normalsize
-which should provide minimal detail regarding each parameter.  The default parameters
-should provide adequate performance for a variety of cases thus requiring only the simple
-call (for a 3-D image)
+
+\subsection{Super-resolution}
 
 \small
 \begin{verbatim}
-$ DenoiseImage -d 3 -i ${inputImage} -o ${outputImage}
+$ NonLocalSuperResolution --help 1
+
+COMMAND:
+     NonLocalSuperResolution
+          Non-local super resolution described in the following papers: 1) JV Manjon, P
+          Coupe, A Buades, V Fonov, DL Collins, and Montserrat Robles. Non-local MRI
+          Upsampling.Medical Image Analysis, 14:784-792, 2010 and2) JV Manjon, P Coupe, A
+          Buades, DL Collins, and Montserrat Robles. MRI Superresolution Using
+          Self-Similarity and Image Priors.International Journal of Biomedical Imaging,
+          2010.
+
+OPTIONS:
+     -d, --image-dimensionality 2/3/4
+          This option forces the image to be treated as a specified-dimensional image. If
+          not specified, the program tries to infer the dimensionality from the input
+          image.
+
+     -i, --input-image inputImageFilename
+          A low-resolution image input image to be superresoluted.
+
+     -j, --interpolated-image inputImageFilename
+          An interpolated version of the low-resolution image (such as B-spline). One
+          should specify either this option as a secondary input or a high-resolution
+          multi-modal counterpart (cf the -k option).
+
+     -k, --reference-image inputImageFilename
+          A high resolution reference multi-modal image. Assumed to be in the same space
+          as the low-resolution input image (i.e., registered).One should specify either
+          this option as a secondary input or an interpolated version (cf the -j option).
+
+     -p, --patch-radius 1
+                        1x1x1
+          Patch radius. Default = 1x1x1
+
+     -r, --search-radius 3
+                         3x3x3
+          Search radius. Default = 3x3x3.
+
+     -g, --intensity-difference-sigma 1.0
+          Intensity difference sigma. Default = 1.0
+
+     -t, --patch-similarity-sigma 1.0
+          Patch similarity sigma. Default = 1.0
+
+     -s, --scale-levels 32x16x8x2x1
+          Scale levels. Default = 32x16x8x2x1
+
+     -n, --interpolation Linear
+                         NearestNeighbor
+                         Gaussian[<sigma=imageSpacing>,<alpha=1.0>]
+                         BSpline[<order=3>]
+                         CosineWindowedSinc
+                         WelchWindowedSinc
+                         HammingWindowedSinc
+                         LanczosWindowedSinc
+          Several interpolation options are available in ITK. These have all been made
+          available.
+
+     -o, --output outputImage
+          The output consists of the noise corrected version of the input image.
+          Optionally, one can also output the estimated noise image.
+
+     --version
+          Get Version Information.
+
+     -v, --verbose (0)/1
+          Verbose output.
+
+     -h
+          Print the help menu (short version).
+
+     --help
+          Print the help menu.
+          <VALUES>: 1
 \end{verbatim}
 \normalsize
 
-As mentioned, this filter is multi-threaded so one might want to set the environment
-variable to enable more than one thread, e.g.,
-\small
-\begin{verbatim}
-$ export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=4
-\end{verbatim}
-\normalsize
-
-To see the progress of the filter, one also needs to set the verbose flag, i.e.,
-\verb#-v 1#.
-
-\section{Examples}
-
-We included a 2-D brain slice and a 3-D hyperpolarized gas volume each with a corresponding
-mask.  Below we include the call and resulting output for these two sets of data.
-
-\subsection{T1-weighted MRI brain slice}
-
-\small
-\begin{verbatim}
-$ DenoiseImage -d 2 -i t81slice.nii.gz -x t81mask.nii.gz -o t81denoised.nii.gz -v 1
-
-Running for 2-dimensional images.
-
-*********10*********20*********30*********40*********50*********60*********70*********80*********90*********
-
-   AdaptiveNonLocalMeansDenoisingImageFilter (0x7f9733997080)
-     RTTI typeinfo:   itk::AdaptiveNonLocalMeansDenoisingImageFilter<itk::Image<float, 2u>, itk::Image<float, 2u>, itk::Image<unsigned char, 2u> >
-     Reference Count: 1
-     Modified Time: 517
-     Debug: Off
-     Object Name:
-     Observers:
-       ProgressEvent(Command)
-     Inputs:
-       Primary: (0x7f9733996c10) *
-       _1: (0x7f97339988f0)
-     Indexed Inputs:
-       0: Primary (0x7f9733996c10)
-       1: _1 (0x7f97339988f0)
-     Required Input Names: Primary
-     NumberOfRequiredInputs: 1
-     Outputs:
-       Primary: (0x7f9733996a50)
-     Indexed Outputs:
-       0: Primary (0x7f9733996a50)
-     NumberOfRequiredOutputs: 1
-     Number Of Threads: 1
-     ReleaseDataFlag: Off
-     ReleaseDataBeforeUpdateFlag: Off
-     AbortGenerateData: Off
-     Progress: 1
-     Multithreader:
-       RTTI typeinfo:   itk::MultiThreader
-       Reference Count: 1
-       Modified Time: 299
-       Debug: Off
-       Object Name:
-       Observers:
-         none
-       Thread Count: 1
-       Global Maximum Number Of Threads: 128
-       Global Default Number Of Threads: 1
-     CoordinateTolerance: 1e-06
-     DirectionTolerance: 1e-06
-     Using Gaussian noise model.
-     Epsilon = 1e-05
-     Mean threshold = 0.95
-     Variance threshold = 0.5
-     Smoothing variance = 2
-     Neighborhood radius for local mean and variance = [1, 1]
-     Neighborhood search radius  = [3, 3]
-     Neighborhood block radius = [1, 1]
-Elapsed time: 0.0831451
-\end{verbatim}
-\normalsize
-
-\begin{figure}[!ht]
-\begin{subfigure}{0.5\textwidth}
-  \centering
-  \includegraphics[width=0.8\linewidth]{Figures/t81slice.eps}
-  \caption{Original}
-\end{subfigure}
-\begin{subfigure}{0.5\textwidth}
-  \centering
-  \includegraphics[width=0.8\linewidth]{Figures/t81denoised.eps}
-  \caption{Denoised}
-\end{subfigure}
-\caption{Effects of the NL-means filter on a 2-D T1-weighted MRI brain slice.}
-\end{figure}
-
-
-\subsection{Hyperpolarized He3 Lung MRI volume}
+\subsection{Joint fusion}
 
 \small
 \begin{verbatim}
-$ DenoiseImage -d 3 -i he3volume.nii.gz -x he3mask.nii.gz -o he3denoised.nii.gz -v 1
+$ jointFusion --help 1
 
-Running for 3-dimensional images.
+COMMAND:
+     antsJointFusion
+          antsJointFusion is an image fusion algorithm developed by Hongzhi Wang and Paul
+          Yushkevich which won segmentation challenges at MICCAI 2012 and MICCAI 2013. The
+          original label fusion framework was extended to accommodate intensities by Brian
+          Avants. This implementation is based on Paul's original ITK-style implementation
+          and Brian's ANTsR implementation. References include 1) H. Wang, J. W. Suh, S.
+          Das, J. Pluta, C. Craige, P. Yushkevich, Multi-atlas segmentation with joint
+          label fusion IEEE Trans. on Pattern Analysis and Machine Intelligence, 35(3),
+          611-623, 2013. and 2) H. Wang and P. A. Yushkevich, Multi-atlas segmentation
+          with joint label fusion and corrective learning--an open source implementation,
+          Front. Neuroinform., 2013.
 
-*********10*********20*********30*********40*********50*********60*********70*********80*********90*********
+OPTIONS:
+     -d, --image-dimensionality 2/3/4
+          This option forces the image to be treated as a specified-dimensional image. If
+          not specified, the program tries to infer the dimensionality from the input
+          image.
 
-   AdaptiveNonLocalMeansDenoisingImageFilter (0x7ff279e0a440)
-     RTTI typeinfo:   itk::AdaptiveNonLocalMeansDenoisingImageFilter<itk::Image<float, 3u>, itk::Image<float, 3u>, itk::Image<unsigned char, 3u> >
-     Reference Count: 1
-     Modified Time: 506
-     Debug: Off
-     Object Name:
-     Observers:
-       ProgressEvent(Command)
-     Inputs:
-       Primary: (0x7ff27a97ea20) *
-       _1: (0x7ff27a97f040)
-     Indexed Inputs:
-       0: Primary (0x7ff27a97ea20)
-       1: _1 (0x7ff27a97f040)
-     Required Input Names: Primary
-     NumberOfRequiredInputs: 1
-     Outputs:
-       Primary: (0x7ff279e0a710)
-     Indexed Outputs:
-       0: Primary (0x7ff279e0a710)
-     NumberOfRequiredOutputs: 1
-     Number Of Threads: 4
-     ReleaseDataFlag: Off
-     ReleaseDataBeforeUpdateFlag: Off
-     AbortGenerateData: Off
-     Progress: 1
-     Multithreader:
-       RTTI typeinfo:   itk::MultiThreader
-       Reference Count: 1
-       Modified Time: 294
-       Debug: Off
-       Object Name:
-       Observers:
-         none
-       Thread Count: 4
-       Global Maximum Number Of Threads: 128
-       Global Default Number Of Threads: 4
-     CoordinateTolerance: 1e-06
-     DirectionTolerance: 1e-06
-     Using Gaussian noise model.
-     Epsilon = 1e-05
-     Mean threshold = 0.95
-     Variance threshold = 0.5
-     Smoothing variance = 2
-     Neighborhood radius for local mean and variance = [1, 1, 1]
-     Neighborhood search radius  = [3, 3, 3]
-     Neighborhood block radius = [1, 1, 1]
-Elapsed time: 1.7134
+     -t, --target-image targetImage
+                        [targetImageModality0,targetImageModality1,...,targetImageModalityN]
+          The target image (or multimodal target images) assumed to be aligned to a common
+          image domain.
+
+     -g, --atlas-image atlasImage
+                       [atlasImageModality0,atlasImageModality1,...,atlasImageModalityN]
+          The atlas image (or multimodal atlas images) assumed to be aligned to a common
+          image domain.
+
+     -l, --atlas-segmentation atlasSegmentation
+          The atlas segmentation images. For performing label fusion the number of
+          specified segmentations should be identical to the number of atlas image sets.
+
+     -a, --alpha 0.1
+          Regularization term added to matrix Mx for calculating the inverse. Default =
+          0.1
+
+     -b, --beta 2.0
+          Exponent for mapping intensity difference to the joint error. Default = 2.0
+
+     -c, --constrain-nonnegative (0)/1
+          Constrain solution to non-negative weights.
+
+     -p, --patch-radius 2
+                        2x2x2
+          Patch radius for similarity measures. Default = 2x2x2
+
+     -m, --patch-metric (PC)/MSQ
+          Metric to be used in determining the most similar neighborhood patch. Options
+          include Pearson's correlation (PC) and mean squares (MSQ). Default = PC (Pearson
+          correlation).
+
+     -s, --search-radius 3
+                         3x3x3
+                         searchRadiusMap.nii.gz
+          Search radius for similarity measures. Default = 3x3x3. One can also specify an
+          image where the value at the voxel specifies the isotropic search radius at that
+          voxel.
+
+     -e, --exclusion-image label[exclusionImage]
+          Specify an exclusion region for the given label.
+
+     -x, --mask-image maskImageFilename
+          If a mask image is specified, fusion is only performed in the mask region.
+
+     -o, --output labelFusionImage
+                  intensityFusionImageFileNameFormat
+                  [labelFusionImage,intensityFusionImageFileNameFormat,<labelPosteriorProbabilityImageFileNameFormat>,<atlasVotingWeightImageFileNameFormat>]
+          The output is the intensity and/or label fusion image. Additional optional
+          outputs include the label posterior probability images and the atlas voting
+          weight images.
+
+     --version
+          Get version information.
+
+     -v, --verbose (0)/1
+          Verbose output.
+
+     -h
+          Print the help menu (short version).
+
+     --help
+          Print the help menu.
+          <VALUES>: 1
 \end{verbatim}
 \normalsize
 
-\begin{figure}[!ht]
-\begin{subfigure}{0.5\textwidth}
-  \centering
-  \includegraphics[width=0.8\linewidth]{Figures/he3volume.eps}
-  \caption{Original}
-\end{subfigure}
-\begin{subfigure}{0.5\textwidth}
-  \centering
-  \includegraphics[width=0.8\linewidth]{Figures/he3denoised.eps}
-  \caption{Denoised}
-\end{subfigure}
-\caption{Effects of the NL-means filter on a 3-D hyperpolarized gas MRI lung volume.}
-\end{figure}
+\section{Usage examples}
 
+Instead of providing examples contained within the submission, we point to
+self-contained github repos which showcase usage for each of the three
+programs.
+
+\subsection{Denoise image}
+
+\begin{itemize}
+  \item \url{https://github.com/ntustison/DenoiseImageExample}
+\end{itemize}
+
+\subsection{Super-resolution}
+
+\begin{itemize}
+  \item \url{https://github.com/ntustison/NonLocalSuperResolutionExample}
+\end{itemize}
+
+\subsection{Joint fusion}
+
+Note that for the following example, the user will need to replace ``antsJointFusion''
+with ``jointFusion'' due to some legacy issues in preparing this submission.
+
+\begin{itemize}
+  \item \url{https://github.com/ntustison/MalfLabelingExample}
+\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
