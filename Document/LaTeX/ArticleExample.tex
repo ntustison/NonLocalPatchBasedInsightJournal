@@ -49,11 +49,12 @@ and non-local super-resolution}
 
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
-\author{Nick Tustison$^{1}$ Brian Avants$^{2}$, Long Xie$^{3}$, Paul Yushkevich$^{3}$, and Jose Vicente Manj\'on$^{4}$}
+\author{Nick Tustison$^{1}$ Brian Avants$^{2}$, Hongzhi Wang$^{3}$, Long Xie$^{4}$, Paul Yushkevich$^{4}$, and Jose Vicente Manj\'on$^{5}$}
 \authoraddress{$^{1}$University of Virginia, Charlottesville, VA\\
                $^{2}$Biogen, Cambridge, MA\\
-               $^{3}$University of Pennsylviania, Philadelphia, PA\\
-               $^{4}$ITACA institute, Universidad Polit\'ecnica de Valencia, Valencia, Spain
+               $^{3}$IBM, San Jose, CA\\
+               $^{4}$University of Pennsylviania, Philadelphia, PA\\
+               $^{5}$ITACA institute, Universidad Polit\'ecnica de Valencia, Valencia, Spain
                }
 
 \begin{document}
@@ -95,11 +96,13 @@ and non-local super-resolution}
 In an earlier Insight Journal article, we introduced an ITK implementation of the
 adaptive patch-based image denoising algorithm described in \cite{Manjon:2010aa}.
 We follow-up up that offering with a generalized non-local, patch-based ITK class
-framework and a refactored denoising class.  In addition, we provide two additional
+framework and a refactored denoising class.  In addition, we provide two
 ITK implementations of related, well-known algorithms.  The first is a non-local
 super resolution method described in \cite{Manjon:2010ab,Manjon:2010ac}.  The second is
 the multivariate
-joint label fusion algorithm of \cite{Wang:2013ab,Wang:2013aa}.  Accompanying these ITK classes are
+joint label fusion algorithm of \cite{Wang:2013ab,Wang:2013aa} with additional extensions,
+denoted as ``joint intensity fusion'', which will be described in a forthcoming manuscript.
+Accompanying these ITK classes are
 documented programming interfaces which use our previously introduced unique
 command line interface routines.  Several 2-D examples on brain imaging data are
 provided to qualitatively demonstrate performance.
@@ -111,26 +114,12 @@ provided to qualitatively demonstrate performance.
 
 \section{Introduction}
 
-Image filtering techniques are usually applied to increase the quality of MR images.
-Most of these techniques assume an equal noise distribution across the image. When this
-assumption is not met, the resulting filtering becomes suboptimal. This is the case of MR
-images with spatially varying noise levels, such as those obtained by parallel imaging
-(sensitivity-encoded), intensity inhomogeneity-corrected images or surface coil based
-acquisitions. In this work, we have adapted a recently proposed filter so-called
-Non-Local Means (NL-means) to deal with MR images with spatially varying noise levels
-(for both Gaussian and Rician distributed noise). With this new method, information
-regarding the local image noise level is used to adjust the amount of denoising strength
-of the filter. Such information is automatically obtained from the images by using the
-local noise estimation method described in \cite{Manjon:2010aa}.
-
-This method has been validated and compared with the standard NL-means filter on simulated
-and real MR imaging data. This noise-adaptive NL-means method was demonstrated to outperform
-the standard NL-means based filter when spatially varying noise is present in the images.
-Although source code is available from Prof. Manj\'on Herrera's website
-(http://personales.upv.es/jmanjon/denoising/arnlm.html).  This particular algorithm is
-currently not available in the Insight Toolkit which provides good performance with minimal
-parameter tuning. In this Insight Journal submission, we provide a brief overview of the ITK
-implementation and provide a couple examples.
+Since the non-local (NL) means algorithm introduced in several early papers \cite{Buades},
+the resulting family of research techniques has grown to significant prominence within the
+medical imaging community.  In addition to continued research output, patch-based techniques
+have been the subject of workshops (Patch-MI 2015 and PMI'16, both MICCAI-sponsored
+workshops).   Given the interest and potential applications, this submission is a potential
+``conversation starter'' for the development of an ITK software framework
 
 \section{ITK Implementation}
 
