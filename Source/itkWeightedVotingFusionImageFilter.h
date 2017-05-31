@@ -20,8 +20,6 @@
 
 #include "itkNonLocalPatchBasedImageFilter.h"
 
-#include "itkImageRegionIterator.h"
-#include "itkImageRegionConstIterator.h"
 #include "itkConstNeighborhoodIterator.h"
 
 #include <vnl/vnl_matrix.h>
